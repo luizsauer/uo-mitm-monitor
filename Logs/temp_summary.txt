@@ -1,0 +1,139 @@
+### Log summary
+files: 3
+total lines: 106358
+total duration (seconds): 1600
+total duration (h:m:s): 00:26:40
+freeze count: 6
+critical count: 6
+disconnect (real): 0
+disconnect (transition): 6
+stats rows: 108
+total send quantity: 531637
+error lines captured: 77
+warning lines captured: 12
+debug lines captured: 80
+
+Top packets globally:
+  0xDC: 14510
+  0xD6: 11989
+  0x25: 9504
+  0xF3: 4235
+  0x77: 3404
+  0x73: 1295
+  0x17: 1145
+  0x1D: 676
+  0x1C: 631
+  0x78: 596
+  0x22: 346
+  0xDD: 275
+  0x6E: 231
+  0xAE: 215
+  0x11: 208
+  0x54: 172
+  0xBF: 70
+  0x20: 49
+  0x2E: 37
+  0x6C: 37
+  0x6D: 35
+  0xC0: 24
+  0x4F: 21
+  0x4E: 21
+  0xA1: 16
+  0xB9: 12
+  0xBC: 9
+  0x88: 9
+  0xDF: 7
+  0x76: 6
+  0x16: 6
+  0x2D: 6
+  0x3A: 6
+  0xD8: 5
+  0x70: 4
+  0xA8: 3
+  0x8C: 3
+  0xA9: 3
+  0x1B: 3
+  0x55: 3
+Top SEND packet quantities:
+  0xD6: 524127
+  0xF0: 4454
+  0x73: 1144
+  0x09: 545
+  0x34: 526
+  0xBF: 446
+  0xB1: 163
+  0x02: 103
+  0xAD: 61
+  0x6C: 35
+  0x06: 13
+  0xEF: 2
+  0x80: 2
+  0xA0: 2
+  0x91: 2
+  0x5D: 2
+  0xBD: 2
+  0xFB: 2
+  0xB5: 2
+  0xC8: 2
+Top RECEIVE packet quantities (from STATS):
+  0xD6: 267663
+  0xDC: 10452
+  0x25: 7885
+  0x77: 3401
+  0xF3: 1808
+  0x73: 1122
+  0x17: 1083
+  0x1D: 674
+  0x1C: 603
+  0x78: 558
+  0x6E: 226
+  0xDD: 215
+  0xAE: 209
+  0x11: 199
+  0x54: 169
+  0x22: 103
+  0xBF: 46
+  0x20: 42
+  0x6C: 37
+  0x2E: 31
+
+Peak event windows:
+  peak_10s: slot=+230s total=136311 top=[('send_0xD6', 116131), ('debug', 6131), ('recv_0xD6', 3712), ('packet_0xD6', 1913), ('packet_0xDC', 1890), ('recv_0xDC', 1886), ('packet_0x25', 1583), ('recv_0x25', 1577)]
+  peak_30s: slot=+210s total=137390 top=[('send_0xD6', 116313), ('debug', 6373), ('recv_0xD6', 3844), ('packet_0xD6', 1979), ('packet_0xDC', 1956), ('recv_0xDC', 1952), ('packet_0x25', 1583), ('recv_0x25', 1577)]
+  peak_120s: slot=+120s total=241443 top=[('recv_0xD6', 166714), ('send_0xD6', 56868), ('debug', 7743), ('packet_0xDC', 2444), ('packet_0xD6', 2431), ('packet_0xF3', 2422), ('error', 1166), ('texture_error', 1166)]
+
+Per-file details:
+- bin\Debug\Logs\2026-03-26_13-40-18_39616_console.log: lines=14704, duration=226s (00:03:46), freeze=0, critical=0, disconnect=0, top: 0xD6:4080, 0xDC:4043, 0xF3:2422, 0x25:1584, 0x22:243
+  window сек => top counts (por janela)
+    +0s: send_0xD6:87397, recv_0xD6:39600, debug:5145, packet_0xD6:1647, packet_0xDC:1597, packet_0x25:1584, packet_0x73:51, stats:25
+    +60s: recv_0xD6:45959, send_0xD6:3099, debug:77, packet_0x73:60, stats:29, packet_0x17:4, packet_0x77:3, packet_0x78:2
+    +120s: recv_0xD6:70330, send_0xD6:49260, debug:7738, packet_0xDC:2444, packet_0xD6:2431, packet_0xF3:2422, error:1166, texture_error:1166
+    +180s: recv_0xD6:96384, send_0xD6:7608, stats:24, debug:5, packet_0x73:3, warning:1
+  texture errors:
+    idx:62455 itemid:46071: 1166
+- bin\Debug\Logs\2026-03-26_15-20-50_2436_console.log: lines=91651, duration=1174s (00:19:34), freeze=3, critical=3, disconnect=0, top: 0xDC:10467, 0x25:7920, 0xD6:7909, 0x77:3401, 0xF3:1813
+  window сек => top counts (por janela)
+    +0s: send_0xD6:84855, debug:5218, recv_0xD6:3170, packet_0xD6:1647, packet_0xDC:1598, recv_0xDC:1595, packet_0x25:1583, recv_0x25:1577
+    +60s: send_0xF0:238, debug:68, packet_0x73:60, recv_0x73:60, send_0x73:59, packet_0xAE:4, recv_0xAE:4, send_0x02:3
+    +120s: send_0xD6:1891, debug:1348, recv_0xD6:614, packet_0xD6:309, packet_0xDC:307, recv_0xDC:307, packet_0xF3:245, recv_0xF3:243
+    +180s: send_0xD6:117245, debug:10344, recv_0xD6:4162, packet_0xDC:3699, recv_0xDC:3691, packet_0x25:3166, recv_0x25:3154, packet_0xD6:2139
+    +240s: send_0xD6:168896, debug:9917, recv_0xD6:4644, packet_0xDC:3366, recv_0xDC:3362, packet_0x25:3171, recv_0x25:3154, packet_0xD6:2411
+    +300s: debug:3339, send_0xD6:2193, recv_0xD6:1458, packet_0xDC:777, recv_0xDC:777, packet_0xD6:729, packet_0xF3:563, recv_0xF3:562
+    +360s: send_0xF0:238, debug:160, recv_0xD6:72, send_0x73:60, packet_0x73:60, recv_0x73:60, send_0xD6:48, packet_0xD6:37
+    +420s: debug:443, send_0xF0:235, send_0xD6:126, recv_0xD6:118, packet_0x77:90, recv_0x77:90, send_0x73:60, packet_0x73:59
+    +480s: debug:377, send_0xF0:231, packet_0x77:201, recv_0x77:201, packet_0x73:60, recv_0x73:60, send_0x73:59, recv_0xD6:46
+    +540s: debug:422, packet_0x77:275, recv_0x77:275, send_0xF0:229, send_0x73:59, packet_0x73:59, recv_0x73:59, packet_0xAE:14
+    +600s: debug:375, packet_0x77:235, recv_0x77:235, send_0xF0:228, send_0x73:59, packet_0x73:59, recv_0x73:59, packet_0x6E:12
+    +660s: debug:469, packet_0x77:310, recv_0x77:310, send_0xF0:229, send_0x73:60, packet_0x73:60, recv_0x73:60, packet_0xDD:25
+    +720s: debug:471, packet_0x77:246, recv_0x77:246, send_0xF0:228, packet_0xDD:92, recv_0xDD:70, send_0x73:59, packet_0x73:59
+    +780s: debug:453, packet_0x77:238, recv_0x77:238, send_0xF0:229, packet_0xDD:71, send_0x73:59, packet_0x73:59, recv_0x73:59
+    +840s: debug:339, send_0xF0:231, packet_0x77:219, recv_0x77:219, send_0x73:60, packet_0x73:60, recv_0x73:60, packet_0xAE:12
+    +900s: debug:348, send_0xF0:232, packet_0x77:189, recv_0x77:189, send_0x73:59, packet_0x73:59, recv_0x73:59, packet_0xDC:23
+    +960s: debug:395, send_0xF0:232, packet_0x77:232, recv_0x77:232, send_0x73:60, packet_0x73:60, recv_0x73:60, packet_0xDC:24
+    +1020s: debug:383, send_0xF0:232, packet_0x77:227, recv_0x77:227, send_0x73:59, packet_0x73:59, recv_0x73:59, packet_0xDC:23
+    +1080s: debug:2426, send_0xD6:1374, recv_0xD6:1004, packet_0xD6:503, packet_0xDC:500, recv_0xDC:500, packet_0xF3:369, recv_0xF3:369
+    +1140s: debug:216, send_0xF0:135, packet_0x77:135, recv_0x77:135, send_0x73:35, packet_0x73:34, recv_0x73:34, packet_0x6E:16
+- bin\Debug\Logs\critical_2026_03_26.log: lines=3, duration=200s (00:03:20), freeze=3, critical=3, disconnect=0, top: 
+  window сек => top counts (por janela)
+    +0s: freeze:2, critical:2
+    +180s: freeze:1, critical:1

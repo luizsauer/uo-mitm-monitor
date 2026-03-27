@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UO MITM Monitor</title>
+    <link rel="stylesheet" href="/static/style.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+<body>
+    <header class="header">
+        <div class="header-brand">
+            <span class="header-icon">🛡️</span>
+            <div>
+                <h1>UO MITM Monitor</h1>
+                <span class="header-sub">ImperialShard Tool</span>
+            </div>
+        </div>
+
+        <div class="header-config">
+            <div class="config-group">
+                <label>Real Server IP:</label>
+                <input id="target-ip" type="text" style="width:150px" placeholder="181.214.48.238">
+            </div>
+            <div class="config-group">
+                <label>Port:</label>
+                <input id="target-port" type="number" style="width:85px" placeholder="2593">
+            </div>
+            <div class="config-group">
+                <label>Local Proxy Port:</label>
+                <input id="listen-port" type="number" style="width:85px" placeholder="2593">
+            </div>
+            <div class="config-group">
+                <label>Bind IP:</label>
+                <input id="relay-ip" type="text" style="width:120px" placeholder="0.0.0.0">
+            </div>
+        </div>
+
+        <div class="header-status">
+            <span id="proxy-status" class="badge badge-info">OFFLINE</span>
+            <span id="uptime-badge" class="badge badge-info">⏱ 00:00:00</span>
+            <span id="conn-badge" class="badge badge-conn">🔌 0</span>
+        </div>
+
+        <div class="header-actions">
+            <button id="btn-toggle-proxy" class="btn btn-primary" onclick="toggleProxy()">▶ Iniciar</button>
+            <button class="btn btn-primary" onclick="window.location.href='/api/export'">📥</button>
+            <button class="btn btn-danger" onclick="clearHistory()">🗑</button>
+        </div>
+    </header>
+
+    <section class="cards-grid">
+        <div class="card card-blue">
+            <div class="card-label">C2S Bytes</div>
+            <div class="card-value" id="c2s-bytes">0</div>
+            <div class="card-sub" id="c2s-bps">0 B/s</div>
+        </div>
+        <div class="card card-green">
+            <div class="card-label">S2C Bytes</div>
+            <div class="card-value" id="s2c-bytes">0</div>
+            <div class="card-sub" id="s2c-bps">0 B/s</div>
+        </div>
+        <div class="card card-blue">
+            <div class="card-label">C2S Pkts</div>
+            <div class="card-value" id="c2s-pkts">0</div>
+            <div class="card-sub" id="c2s-pps">0 pkt/s</div>
+        </div>
+        <div class="card card-green">
+            <div class="card-label">S2C Pkts</div>
+            <div class="card-value" id="s2c-pkts">0</div>
+            <div class="card-sub" id="s2c-pps">0 pkt/s</div>
+        </div>
+        <div class="card card-purple">
+            <div class="card-label">Conexões Ativas</div>
+            <div class="card-value" id="stat-conn">0</div>
+            <div class="card-sub">sessões UO</div>
+        </div>
+    </section>
+
+    <section class="charts-row">
+        <div class="chart-box">
+            <div class="chart-title">📈 Packets/s</div>
+            <canvas id="chart-pps"></canvas>
+        </div>
+        <div class="chart-box">
+            <div class="chart-title">📊 Bytes/s</div>
+            <canvas id="chart-bps"></canvas>
+        </div>
+    </section>
+
+    <div class="main-content">
+        <section class="panel panel-main">
+            <div class="panel-header">
+                <h2>📡 Packet Feed</h2>
+                <div class="filter-bar">
+                    <select id="f-dir" onchange="applyFilters()">
+                        <option value="">▼ Dir</option>
+                        <option value="C2S">C2S</option>
+                        <option value="S2C">S2C</option>
+                    </select>
+                    <input id="f-opcode" type="text" placeholder="Opcode" maxlength="4" oninput="applyFilters()">
+                    <input id="f-name" type="text" placeholder="Nome" oninput="applyFilters()">
+                    <button class="btn btn-sm" onclick="clearFilters()">✕</button>
+                    <span style="margin-left:auto; font-size:11px; color:var(--text-muted)">Feed: <span id="visible-count">0</span></span>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table id="packet-table">
+                    <thead>
+                        <tr><th>#</th><th>Tempo</th><th>Dir</th><th>Opcode</th><th>Nome</th><th>Len</th><th>Hex Preview</th></tr>
+                    </thead>
+                    <tbody id="packet-tbody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <aside class="panel panel-side">
+            <div class="side-section">
+                <h3>🔼 Top C2S</h3>
+                <table class="rank-table" id="top-c2s"><tbody></tbody></table>
+            </div>
+            <div class="side-section">
+                <h3>🔽 Top S2C</h3>
+                <table class="rank-table" id="top-s2c"><tbody></tbody></table>
+            </div>
+            <div class="side-section">
+                <h3>🔌 Log</h3>
+                <div id="conn-log" class="conn-log"></div>
+            </div>
+        </aside>
+    </div>
+
+    <div id="modal" class="modal hidden" onclick="closeModal()">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <h3 id="modal-title">Packet Details</h3>
+            <div class="modal-grid" id="modal-meta"></div>
+            <div class="hex-dump" id="modal-hex"></div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
