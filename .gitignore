@@ -1,0 +1,18 @@
+# Logs e Dados de Captura
+*.jsonl
+*.log
+*.json
+mitm_trace.jsonl*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+.env
+
+# IDEs
+.idea/
+.vscode/
