@@ -3,7 +3,7 @@
    ════════════════════════════════════════════════════════ */
 
 let MAX_ROWS = 500;
-let MAX_POINTS = 60;
+let MAX_POINTS = 300; // 5 minutos de histórico
 
 let allPackets = [];
 let isRunning = false;
@@ -103,10 +103,32 @@ function updateUI(data) {
     document.getElementById("c2s-pkts").innerText = fmtNum(data.c2s_pkts);
     document.getElementById("s2c-pkts").innerText = fmtNum(data.s2c_pkts);
     
-    document.getElementById("c2s-pps").innerText = (data.c2s_pps.slice(-1)[0] || 0) + " pkt/s";
-    document.getElementById("s2c-pps").innerText = (data.s2c_pps.slice(-1)[0] || 0) + " pkt/s";
+    const lastPPS_C2S = data.c2s_pps.slice(-1)[0] || 0;
+    const lastPPS_S2C = data.s2c_pps.slice(-1)[0] || 0;
+    document.getElementById("c2s-pps").innerText = lastPPS_C2S + " pkt/s";
+    document.getElementById("s2c-pps").innerText = lastPPS_S2C + " pkt/s";
     document.getElementById("c2s-bps").innerText = fmtSize(data.c2s_bps.slice(-1)[0] || 0) + "/s";
     document.getElementById("s2c-bps").innerText = fmtSize(data.s2c_bps.slice(-1)[0] || 0) + "/s";
+
+    // Logica de Network Health (Flood Detection)
+    const totalPPS = lastPPS_C2S + lastPPS_S2C;
+    const healthEl = document.getElementById("stat-health");
+    const healthDesc = document.getElementById("health-desc");
+    const healthCard = document.getElementById("card-flood");
+    
+    if (totalPPS > 500) {
+        healthEl.innerText = "FLOOD!";
+        healthDesc.innerText = "Taxa Crítica (>500/s)";
+        healthCard.style.border = "1px solid var(--red)";
+    } else if (totalPPS > 200) {
+        healthEl.innerText = "ALTO";
+        healthDesc.innerText = "Tráfego Intenso";
+        healthCard.style.border = "1px solid var(--yellow)";
+    } else {
+        healthEl.innerText = "OK";
+        healthDesc.innerText = "Tráfego Estável";
+        healthCard.style.border = "1px solid var(--border)";
+    }
 
     updateRank("top-c2s", data.top_c2s);
     updateRank("top-s2c", data.top_s2c);
@@ -203,9 +225,73 @@ function showModal(ev) {
 function closeModal() { document.getElementById("modal").classList.add("hidden"); }
 
 function initCharts() {
-    const opt = { responsive: true, maintainAspectRatio: false, animation: false, scales: { x: { display: false }, y: { beginAtZero: true } }, plugins: { legend: { display: false } }, elements: { point: { radius: 0 } } };
-    chartPPS = new Chart(document.getElementById("chart-pps"), { type: "line", data: { labels: Array(60).fill(""), datasets: [{borderColor: "#3b82f6", data: []}, {borderColor: "#10b981", data: []}] }, options: opt });
-    chartBPS = new Chart(document.getElementById("chart-bps"), { type: "line", data: { labels: Array(60).fill(""), datasets: [{borderColor: "#3b82f6", data: []}, {borderColor: "#10b981", data: []}] }, options: opt });
+    const zoomOptions = {
+        zoom: {
+            wheel: { enabled: true },
+            pinch: { enabled: true },
+            mode: 'x',
+        },
+        pan: {
+            enabled: true,
+            mode: 'x',
+        }
+    };
+
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        scales: {
+            x: { display: false },
+            y: { 
+                beginAtZero: true, 
+                grid: { color: "rgba(255,255,255,0.05)" },
+                ticks: { color: "#5a6480", font: { size: 10 } }
+            }
+        },
+        plugins: { 
+            legend: { display: false },
+            zoom: zoomOptions,
+            tooltip: {
+                enabled: true,
+                mode: 'index',
+                intersect: false,
+                backgroundColor: 'rgba(20, 23, 32, 0.9)',
+                titleColor: '#8892aa',
+                bodyColor: '#e2e8f0',
+                borderColor: '#2a2f47',
+                borderWidth: 1
+            }
+        },
+        elements: { 
+            point: { radius: 0 },
+            line: { tension: 0.3, borderWidth: 2 }
+        }
+    };
+
+    chartPPS = new Chart(document.getElementById("chart-pps"), {
+        type: "line",
+        data: {
+            labels: Array(MAX_POINTS).fill(""),
+            datasets: [
+                { label: "C2S", data: [], borderColor: "#3b82f6", backgroundColor: "rgba(59, 130, 246, 0.1)", fill: true },
+                { label: "S2C", data: [], borderColor: "#10b981", backgroundColor: "rgba(16, 185, 129, 0.1)", fill: true }
+            ]
+        },
+        options: commonOptions
+    });
+
+    chartBPS = new Chart(document.getElementById("chart-bps"), {
+        type: "line",
+        data: {
+            labels: Array(MAX_POINTS).fill(""),
+            datasets: [
+                { label: "C2S", data: [], borderColor: "#3b82f6", backgroundColor: "rgba(59, 130, 246, 0.1)", fill: true },
+                { label: "S2C", data: [], borderColor: "#10b981", backgroundColor: "rgba(16, 185, 129, 0.1)", fill: true }
+            ]
+        },
+        options: commonOptions
+    });
 }
 
 async function clearHistory() {

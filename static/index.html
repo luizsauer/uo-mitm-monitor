@@ -6,6 +6,8 @@
     <title>UO MITM Monitor</title>
     <link rel="stylesheet" href="/static/style.css"/>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 </head>
 <body>
@@ -38,9 +40,9 @@
         </div>
 
         <div class="header-status">
-            <span id="proxy-status" class="badge badge-info">OFFLINE</span>
-            <span id="uptime-badge" class="badge badge-info">⏱ 00:00:00</span>
-            <span id="conn-badge" class="badge badge-conn">🔌 0</span>
+            <span id="proxy-status" class="badge badge-info" title="Status do Serviço">OFFLINE</span>
+            <span id="uptime-badge" class="badge badge-info" title="Tempo de Atividade">⏱ 00:00:00</span>
+            <span id="conn-badge" class="badge badge-conn" title="Conexões Ativas no Momento">🔌 0</span>
         </div>
 
         <div class="header-actions">
@@ -72,19 +74,30 @@
             <div class="card-sub" id="s2c-pps">0 pkt/s</div>
         </div>
         <div class="card card-purple">
-            <div class="card-label">Conexões Ativas</div>
-            <div class="card-value" id="stat-conn">0</div>
-            <div class="card-sub">sessões UO</div>
+            <div class="card-label">Packets no Buffer</div>
+            <div class="card-value" id="buf-count">0</div>
+            <div class="card-sub">em memória</div>
+        </div>
+        <div class="card card-yellow" id="card-flood">
+            <div class="card-label">Network Health</div>
+            <div class="card-value" id="stat-health">OK</div>
+            <div class="card-sub" id="health-desc">Tráfego Estável</div>
         </div>
     </section>
 
     <section class="charts-row">
         <div class="chart-box">
-            <div class="chart-title">📈 Packets/s</div>
+            <div class="chart-title">
+                📈 Packets/s 
+                <button class="btn-sm" style="padding:2px 6px; font-size:9px; float:right" onclick="chartPPS.resetZoom()">Reset</button>
+            </div>
             <canvas id="chart-pps"></canvas>
         </div>
         <div class="chart-box">
-            <div class="chart-title">📊 Bytes/s</div>
+            <div class="chart-title">
+                📊 Bytes/s
+                <button class="btn-sm" style="padding:2px 6px; font-size:9px; float:right" onclick="chartBPS.resetZoom()">Reset</button>
+            </div>
             <canvas id="chart-bps"></canvas>
         </div>
     </section>

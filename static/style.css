@@ -57,9 +57,11 @@ html, body {
 /* ─── Header ────────────────────────────────────────────── */
 .header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 24px;
-  padding: 8px 24px;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 24px;
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border);
   position: sticky;
@@ -68,18 +70,77 @@ html, body {
   box-shadow: 0 2px 12px rgba(0,0,0,0.5);
 }
 
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
 .header-config {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   flex: 1;
   justify-content: center;
+  min-width: fit-content;
 }
+
+.header-status {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Responsividade do Header */
+@media (max-width: 1400px) {
+  .header-config {
+    order: 4;
+    width: 100%;
+    justify-content: center;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    margin-top: 4px;
+  }
+}
+
+@media (max-width: 800px) {
+  .header {
+    padding: 10px 16px;
+  }
+  .header-status {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    margin-top: 4px;
+  }
+  .header-actions {
+    order: 2;
+  }
+}
+.header-icon { font-size: 28px; }
+.header-brand h1 {
+  font-size: 22px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.header-sub { font-size: 13px; color: var(--text-muted); }
 
 .config-group {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .config-group label {
@@ -99,35 +160,25 @@ html, body {
   font-size: 14px;
   font-family: 'JetBrains Mono', monospace;
   outline: none;
+  flex-shrink: 0;
 }
-
-.header-status { display: flex; gap: 8px; flex-wrap: nowrap; }
-
-.header-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: fit-content;
-}
-.header-icon { font-size: 28px; }
-.header-brand h1 {
-  font-size: 22px;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-.header-sub { font-size: 13px; color: var(--text-muted); }
 
 .badge {
   font-size: 11px;
   font-weight: 600;
   padding: 4px 10px;
-  border-radius: 20px;
+  border-radius: 6px; /* Mudado de 20px para 6px para ficar mais retangular e estável */
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
+  white-space: nowrap;
+  min-width: 40px;
+}
+
+.badge-conn {
+  min-width: 50px;
+  cursor: help;
 }
 .badge-live   { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); animation: pulse-green 2s infinite; }
 .badge-info   { background: rgba(79,142,247,0.15); color: var(--blue); border: 1px solid rgba(79,142,247,0.3); }
@@ -198,12 +249,11 @@ html, body {
 
 /* ─── Charts ────────────────────────────────────────────── */
 .charts-row {
-  display: flex; /* Mudando de grid para flex para melhor controle */
+  display: flex;
   gap: 12px;
   padding: 8px 24px;
-  height: 180px; 
-  min-height: 180px;
-  max-height: 180px;
+  height: 280px; 
+  min-height: 280px;
   overflow: hidden;
 }
 .chart-box {
@@ -211,12 +261,24 @@ html, body {
   background: var(--bg-panel);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 10px;
+  padding: 12px;
   position: relative;
-  height: 100%;
-  width: 50%; /* Garante que não cresça horizontalmente também */
+  display: flex;
+  flex-direction: column;
 }
-.chart-title { font-size: 12px; font-weight: 600; color: var(--text-dim); margin-bottom: 8px; }
+.chart-box canvas {
+  flex: 1;
+  min-height: 0; /* Garante que o canvas não force o container a crescer */
+}
+.chart-title { 
+  font-size: 12px; 
+  font-weight: 600; 
+  color: var(--text-dim); 
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
 /* ─── Main Content ──────────────────────────────────────── */
 .main-content {

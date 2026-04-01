@@ -1,51 +1,92 @@
-# 🛡️ UO MITM Monitor
+# 🛡️ UO MITM Monitor — Guia Completo
 
-**UO MITM Monitor** é uma ferramenta de inspeção e monitoramento de rede (MITM Proxy) desenvolvida especificamente para o ecossistema **Ultima Online**. Ele atua entre o cliente e o servidor, permitindo a análise de pacotes em tempo real, detecção de floods e visualização de dados operacionais através de um dashboard web intuitivo.
+O **UO MITM Monitor** é uma ferramenta poderosa e fácil de usar para monitorar a conexão entre o seu jogo (**Ultima Online**) e o servidor. 
 
-## 🚀 Funcionalidades
+Imagine que é como uma "câmera de segurança" para a sua internet no jogo: ele mostra exatamente o que o servidor está enviando para você e o que você está enviando para o servidor em tempo real. Isso ajuda a descobrir por que o jogo trava, se há "floods" de pacotes ou se a conexão está instável.
 
-- **MITM Proxy de Alta Performance:** Encaminha tráfego de forma transparente com buffer paralelo para inspeção sem latência perceptível.
-- **Handshake de Login Inteligente:** Gerencia o seed inicial de 4 bytes e redirecionamento 0x8C (Server Relay) para manter a sessão estável em `127.0.0.1`.
-- **Dashboard em Tempo Real:** Visualização de tráfego, contagem de pacotes e alertas de segurança via Flask e SocketIO.
-- **Detecção de Flood:** Alerta visual instantâneo quando o limite de pacotes por segundo é excedido.
-- **Persistência de Histórico:** Salva traços de pacotes no formato JSONL para análise forense ou auditoria.
-- **Controle Dinâmico:** Botão de pausa/ativação do proxy diretamente pelo navegador.
+---
 
-## 🏗️ Arquitetura
+## 🌟 O que ele faz?
+- **Gráficos em Tempo Real:** Veja o tráfego da sua conexão de forma visual.
+- **Histórico de Pacotes:** Saiba exatamente qual comando (andar, falar, usar item) causou um erro.
+- **Dashboard Web:** Você controla tudo pelo seu navegador (Chrome, Edge, etc.).
+- **Fácil de Usar:** Não precisa ser programador para instalar e rodar.
 
-O sistema é dividido em dois componentes principais:
-1.  **Core Proxy (`uo_mitm_proxy.py`):** Motor TCP em Python que lida com o framing dos pacotes UO e a lógica de redirecionamento de login.
-2.  **Web Dashboard (`uo_mitm_web.py`):** Interface moderna construída com Flask e Chart.js para telemetria em tempo real.
+---
 
-## 🛠️ Requisitos
+## 🛠️ Como Instalar (Passo a Passo)
 
-- Python 3.10+
-- Flask
-- Flask-SocketIO
-- Eventlet (para concorrência de alta performance)
+Siga estas etapas simples para colocar tudo funcionando:
 
-## 🏃 Como Executar
+### 1. Instale o Python
+Se você ainda não tem o Python no seu Windows:
+1. Vá para [python.org/downloads](https://www.python.org/downloads/) e clique no botão amarelo **Download Python**.
+2. **IMPORTANTE:** Na hora de instalar, marque a caixinha que diz **"Add Python to PATH"** (Adicionar Python ao PATH). Isso é fundamental!
+3. Finalize a instalação.
 
-1. Instale as dependências:
-   ```bash
-   pip install flask flask-socketio eventlet
-   ```
+### 2. Baixe o Sistema
+Baixe os arquivos deste projeto para uma pasta no seu computador.
 
-2. Inicie o Monitor:
+### 3. Instale as Dependências
+Abra o **Prompt de Comando** (digite `cmd` no menu iniciar), navegue até a pasta do projeto e digite o seguinte comando:
+```bash
+pip install -r requirements.txt
+```
+*Isso vai instalar automaticamente as ferramentas necessárias para o monitor funcionar.*
+
+---
+
+## ⚙️ Como Configurar
+
+Antes de abrir o jogo, você precisa dizer ao monitor qual é o servidor real do UO.
+1. Abra o arquivo `config.json` com o Bloco de Notas.
+2. Altere os campos:
+   - `"target_ip"`: O endereço IP do servidor real (ex: `181.214.48.238`).
+   - `"target_port"`: A porta do servidor (geralmente `2593`).
+   - `"listen_port"`: Deixe em `2593` (é onde o seu jogo vai conectar localmente).
+3. Salve o arquivo.
+
+---
+
+## 🚀 Como Usar
+
+Agora vem a parte divertida:
+
+1. **Inicie o Monitor:**
+   Você tem duas opções:
+   - **Fácil:** Basta dar um duplo-clique no arquivo `run_monitor.bat` que eu criei para você. Ele vai configurar tudo e abrir o servidor sozinho.
+   - **Manual:** No Prompt de Comando, dentro da pasta do projeto, digite:
    ```bash
    python uo_mitm_web.py
    ```
+2. **Abra o Dashboard:**
+   Abra o seu navegador e acesse: [http://localhost:5000](http://localhost:5000)
+   Você verá o painel de controle!
 
-3. Configure seu cliente de UO para conectar em `127.0.0.1` na porta `2593` (ou a porta configurada).
-
-4. Acesse o dashboard em: `http://localhost:5000`
-
-## 📂 Estrutura do Projeto
-
-- `uo_mitm_proxy.py`: Lógica central de interceptação.
-- `uo_mitm_web.py`: Servidor de API e WebSockets.
-- `static/`: Frontend (HTML, CSS, JS).
-- `.gitignore`: Configurado para ignorar logs e dados de captura sensíveis.
+3. **Conecte o seu Jogo (ClassicUO / Razor / Orion):**
+   No seu Launcher ou Client de UO, altere o endereço do servidor para:
+   - **IP:** `127.0.0.1`
+   - **Porta:** `2593` (ou a mesma que você colocou em `listen_port`)
+   
+   *Agora, quando você clicar em "Login", o tráfego passará pelo monitor e aparecerá no Dashboard!*
 
 ---
-*Desenvolvido para uso exclusivo em ambientes de desenvolvimento e administração de servidores Ultima Online.*
+
+## 📊 Entendendo o Dashboard
+
+- **LIVE / STOP:** Você pode pausar o monitoramento a qualquer momento.
+- **Filtros:** Quer ver só quando você "fala" no jogo? Digite `Speech` no filtro de nome.
+- **Exportar:** Clique em "Export" para baixar um arquivo com todo o histórico da sua sessão (útil para enviar para os administradores do servidor analisarem um erro).
+- **Anomalias:** Se o sistema detectar algo estranho (como um pacote de tamanho errado), ele avisará você.
+
+---
+
+## ❓ Problemas Comuns
+
+- **"A porta já está em uso":** Garanta que você não tem outro monitor aberto ou que o seu servidor de UO local (se tiver) não está usando a porta 2593.
+- **O Dashboard não carrega:** Verifique se o comando `python uo_mitm_web.py` ainda está rodando no Prompt de Comando.
+- **O jogo não conecta:** Verifique se o IP no `config.json` está correto e se você colocou `127.0.0.1` no seu Client de UO.
+
+---
+
+*Desenvolvido para ajudar jogadores e administradores a terem uma conexão mais estável e transparente.* 🛡️
