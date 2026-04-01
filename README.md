@@ -41,7 +41,7 @@ pip install -r requirements.txt
 Antes de abrir o jogo, você precisa dizer ao monitor qual é o servidor real do UO.
 1. Abra o arquivo `config.json` com o Bloco de Notas.
 2. Altere os campos:
-   - `"target_ip"`: O endereço IP do servidor real (ex: `181.214.48.238`).
+   - `"target_ip"`: O endereço IP do servidor real (ex: `180.210.40.10`).
    - `"target_port"`: A porta do servidor (geralmente `2593`).
    - `"listen_port"`: Deixe em `2593` (é onde o seu jogo vai conectar localmente).
 3. Salve o arquivo.
