@@ -100,6 +100,15 @@ def api_status():
         }
     })
 
+@app.route("/api/config/save", methods=["POST"])
+def api_config_save():
+    global config
+    data = request.json
+    config.update(data)
+    with open(CONFIG_FILE, "w") as f:
+        json.dump(config, f, indent=4)
+    return jsonify({"status": "ok", "msg": "Configuração salva com sucesso."})
+
 @app.route("/api/proxy/start", methods=["POST"])
 def api_proxy_start():
     global proxy_instance, proxy_thread, config

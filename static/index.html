@@ -46,9 +46,10 @@
         </div>
 
         <div class="header-actions">
-            <button id="btn-toggle-proxy" class="btn btn-primary" onclick="toggleProxy()">▶ Iniciar</button>
-            <button class="btn btn-primary" onclick="window.location.href='/api/export'">📥</button>
-            <button class="btn btn-danger" onclick="clearHistory()">🗑</button>
+            <button id="btn-toggle-proxy" class="btn btn-primary" onclick="toggleProxy()">▶ Iniciar Proxy</button>
+            <button class="btn btn-primary" onclick="saveConfig()" title="Salvar Configuração">💾 Salvar</button>
+            <button class="btn btn-primary" onclick="window.location.href='/api/export'" title="Exportar Log">📥 Exportar</button>
+            <button class="btn btn-danger" onclick="clearHistory()" title="Limpar Tudo">🗑 Limpar</button>
         </div>
     </header>
 

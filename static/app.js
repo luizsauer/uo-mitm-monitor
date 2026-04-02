@@ -37,20 +37,28 @@ socket.on("stats", data => {
     updateUI(data);
 });
 
+let initialLoadDone = false;
+
 async function loadStatus() {
     try {
         const res = await fetch("/api/status");
         const data = await res.json();
         
-        // Preenche inputs se não estiverem focados
+        // Preenche campos apenas no primeiro carregamento ou se o usuário não alterou manualmente
         const inputs = ["target-ip", "target-port", "listen-port", "relay-ip"];
         inputs.forEach(id => {
             const el = document.getElementById(id);
             const val = data.config[id.replace("-", "_")];
-            if (document.activeElement !== el && val !== undefined) {
-                el.value = val;
+            
+            // Se for o primeiro load OU se o proxy estiver rodando (para mostrar a config ativa)
+            // Se estiver parado, não sobrescrevemos o que o usuário está editando agora
+            if (val !== undefined) {
+                if (!initialLoadDone || data.running) {
+                    el.value = val;
+                }
             }
         });
+        initialLoadDone = true;
 
         isRunning = data.running;
         const btn = document.getElementById("btn-toggle-proxy");
@@ -70,18 +78,40 @@ async function loadStatus() {
             inputs.forEach(id => document.getElementById(id).disabled = false);
         }
         
-        document.getElementById("stat-conn").innerText = data.stats.connections;
         document.getElementById("uptime-badge").innerText = "⏱ " + fmtDuration(data.stats.uptime);
         document.getElementById("conn-badge").innerText = "🔌 " + data.stats.connections + " conexões";
     } catch(e) {}
+}
+
+async function saveConfig() {
+    const config = {
+        target_ip: document.getElementById("target-ip").value,
+        target_port: parseInt(document.getElementById("target-port").value),
+        listen_port: parseInt(document.getElementById("listen-port").value),
+        relay_ip: document.getElementById("relay-ip").value
+    };
+
+    try {
+        const res = await fetch("/api/config/save", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(config)
+        });
+        const data = await res.json();
+        if (data.status === "ok") {
+            showToast("Configuração salva!");
+        } else {
+            alert(data.msg);
+        }
+    } catch(e) { alert("Erro ao salvar configuração."); }
 }
 
 async function toggleProxy() {
     const endpoint = isRunning ? "/api/proxy/stop" : "/api/proxy/start";
     const body = isRunning ? {} : {
         target_ip: document.getElementById("target-ip").value,
-        target_port: document.getElementById("target-port").value,
-        listen_port: document.getElementById("listen-port").value,
+        target_port: parseInt(document.getElementById("target-port").value),
+        listen_port: parseInt(document.getElementById("listen-port").value),
         relay_ip: document.getElementById("relay-ip").value
     };
 
@@ -95,6 +125,18 @@ async function toggleProxy() {
         if (data.status === "error") alert(data.msg);
         loadStatus();
     } catch(e) { alert("Erro ao comunicar com o servidor."); }
+}
+
+function showToast(msg) {
+    // Cria um feedback visual simples perto do header
+    const toast = document.createElement("div");
+    toast.style = "position:fixed; top:20px; right:20px; background:var(--green); color:white; padding:10px 20px; border-radius:8px; z-index:9999; animation: slideIn 0.3s forwards";
+    toast.innerText = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        toast.style.animation = "slideOut 0.3s forwards";
+        setTimeout(() => toast.remove(), 300);
+    }, 2000);
 }
 
 function updateUI(data) {
