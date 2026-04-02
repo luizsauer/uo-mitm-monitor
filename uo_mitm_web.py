@@ -43,6 +43,7 @@ def load_config():
         "target_port": 2593,
         "listen_port": 2593,
         "relay_ip": "0.0.0.0",
+        "inject_ip": "127.0.0.1",
         "auto_start": False
     }
 
@@ -124,7 +125,13 @@ def api_proxy_start():
     with open(CONFIG_FILE, "w") as f:
         json.dump(config, f, indent=4)
     
-    proxy_instance = proxy.UOProxy(config["target_ip"], config["target_port"], config["listen_port"], config["relay_ip"])
+    proxy_instance = proxy.UOProxy(
+        config["target_ip"], 
+        config["target_port"], 
+        config["listen_port"], 
+        config.get("relay_ip", "0.0.0.0"), 
+        config.get("inject_ip", "127.0.0.1")
+    )
     proxy_thread = threading.Thread(target=proxy_instance.start, daemon=True)
     proxy_thread.start()
     

@@ -47,7 +47,7 @@ async function loadStatus() {
         const data = await res.json();
         
         // Preenche campos apenas no primeiro carregamento ou se o usuário não alterou manualmente
-        const inputs = ["target-ip", "target-port", "listen-port", "relay-ip"];
+        const inputs = ["target-ip", "target-port", "listen-port", "relay-ip", "inject-ip"];
         inputs.forEach(id => {
             const el = document.getElementById(id);
             const val = data.config[id.replace("-", "_")];
@@ -114,7 +114,8 @@ async function toggleProxy() {
         target_ip: document.getElementById("target-ip").value,
         target_port: parseInt(document.getElementById("target-port").value),
         listen_port: parseInt(document.getElementById("listen-port").value),
-        relay_ip: document.getElementById("relay-ip").value
+        relay_ip: document.getElementById("relay-ip").value,
+        inject_ip: document.getElementById("inject-ip").value || "127.0.0.1"
     };
 
     try {
