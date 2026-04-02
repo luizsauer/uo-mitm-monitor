@@ -121,14 +121,13 @@ def extract_packets(buf: bytearray) -> list:
             del buf[:pkt_len]
     return packets
 
-def forward(source, target, direction, conn_id, target_host):
+def forward(source, target, direction, conn_id, target_host, listen_addr):
     log_buf = bytearray()
     
-    # Pre-calcular bytes do IP remoto para interceptação rápida
-    try:
-        remote_ip_bytes = socket.inet_aton(target_host)
-    except:
-        remote_ip_bytes = None
+    # Pre-calcular bytes para o redirecionamento
+    proxy_ip = socket.inet_aton("127.0.0.1")
+    proxy_port_val = int(listen_addr[1])
+    proxy_port = proxy_port_val.to_bytes(2, 'big')
 
     while not stop_event.is_set():
         try:
@@ -138,26 +137,27 @@ def forward(source, target, direction, conn_id, target_host):
             data = source.recv(32768)
             if not data: break
 
-            with stats_lock:
-                if direction == "C2S":
-                    stats["c2s_bytes"] += len(data)
-                    stats["_c2s_bytes_since"] += len(data)
-                else:
-                    stats["s2c_bytes"] += len(data)
-                    stats["_s2c_bytes_since"] += len(data)
-
             if proxy_enabled:
                 modified = bytearray(data)
                 
-                # Interceptação de Relay (0x8C)
-                if direction == "S2C" and remote_ip_bytes:
-                    # Se o pacote 0x8C contiver o IP do servidor real, mudamos para 127.0.0.1
-                    idx = modified.find(b'\x8c' + remote_ip_bytes)
-                    if idx != -1:
-                        print(f"[PROXY] Interceptado Relay em offset {idx}. Redirecionando para 127.0.0.1")
-                        modified[idx+1:idx+5] = b'\x7f\x00\x00\x01'
+                # Interceptação de Relay (0x8C) - Força o cliente a ficar no Proxy
+                if direction == "S2C":
+                    # O pacote 0x8C (Relay) é SEMPRE o primeiro byte de um frame e tem exatos 11 bytes.
+                    # Verificamos isso rigorosamente para não corromper dados de mapa/personagem.
+                    if len(modified) == 11 and modified[0] == 0x8C:
+                        print(f"[PROXY] Interceptado Redirecionamento (0x8C) legítimo. Forçando cliente em 127.0.0.1:{proxy_port_val}")
+                        modified[1:5] = proxy_ip
+                        modified[5:7] = proxy_port
                 
                 target.sendall(modified)
+                
+                with stats_lock:
+                    if direction == "C2S":
+                        stats["c2s_bytes"] += len(data)
+                        stats["_c2s_bytes_since"] += len(data)
+                    else:
+                        stats["s2c_bytes"] += len(data)
+                        stats["_s2c_bytes_since"] += len(data)
 
                 # Logging
                 log_buf.extend(modified)
@@ -212,12 +212,21 @@ class UOProxy:
         self.server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
-            self.server_sock.bind((self.listen_host, self.listen_port))
+            # Tenta resolver o host (ex: localhost -> 127.0.0.1)
+            try:
+                listen_ip = socket.gethostbyname(self.listen_host)
+            except:
+                listen_ip = self.listen_host
+                
+            self.server_sock.bind((listen_ip, self.listen_port))
             self.server_sock.listen(50)
             self.running = True
-            print(f"[PROXY] Escutando em {self.listen_host}:{self.listen_port} -> {self.target_host}:{self.target_port}")
+            print(f"[PROXY] Escutando em {listen_ip}:{self.listen_port} -> {self.target_host}:{self.target_port}")
+            _push({"type": "conn", "msg": f"Proxy iniciado em {listen_ip}:{self.listen_port}", "status": "info", "ts_str": time.strftime("%H:%M:%S")})
         except Exception as e:
-            print(f"[PROXY] Erro ao iniciar: {e}")
+            error_msg = f"Erro ao iniciar proxy: {e}"
+            print(f"[PROXY] {error_msg}")
+            _push({"type": "conn", "msg": error_msg, "status": "error", "ts_str": time.strftime("%H:%M:%S")})
             self.running = False
             return False
 
@@ -249,9 +258,16 @@ class UOProxy:
         remote_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         remote_sock.settimeout(5.0)
         try:
-            remote_sock.connect((self.target_host, self.target_port))
+            # Resolve o host real (ex: localhost -> 127.0.0.1)
+            try:
+                target_ip = socket.gethostbyname(self.target_host)
+            except:
+                target_ip = self.target_host
+                
+            remote_sock.connect((target_ip, self.target_port))
             remote_sock.settimeout(None)
-        except:
+        except Exception as e:
+            print(f"[PROXY] Falha ao conectar no Servidor Real ({self.target_host}): {e}")
             client_sock.close()
             return
 
@@ -259,8 +275,11 @@ class UOProxy:
         cid = int(time.time() * 1000) % 10000
         _push({"type": "conn", "msg": f"Nova Conexão: {addr}", "status": "connected", "ts_str": time.strftime("%H:%M:%S")})
 
-        t1 = threading.Thread(target=forward, args=(client_sock, remote_sock, "C2S", cid, self.target_host), daemon=True)
-        t2 = threading.Thread(target=forward, args=(remote_sock, client_sock, "S2C", cid, self.target_host), daemon=True)
+        # listen_addr será usado para redirecionar o 0x8C de volta para este proxy
+        listen_addr = client_sock.getsockname()
+
+        t1 = threading.Thread(target=forward, args=(client_sock, remote_sock, "C2S", cid, self.target_host, listen_addr), daemon=True)
+        t2 = threading.Thread(target=forward, args=(remote_sock, client_sock, "S2C", cid, self.target_host, listen_addr), daemon=True)
         t1.start(); t2.start()
         t1.join(); t2.join()
 
