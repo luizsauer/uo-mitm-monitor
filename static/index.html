@@ -86,6 +86,15 @@
         </div>
     </section>
 
+    <div style="display: flex; justify-content: flex-end; padding: 0 5px; margin-bottom: 5px; z-index: 10;">
+        <label style="margin-right: 10px; font-size: 12px; color: var(--text-muted); align-self: center;">Histórico do Gráfico:</label>
+        <select id="chart-time-filter" onchange="forceChartUpdate()" class="btn-sm" style="background:#161925; color:#e2e8f0; border:1px solid #2a2f47; border-radius:4px; padding: 4px 8px; font-size: 12px; outline: none; cursor: pointer;">
+            <option value="300">Últimos 5 Minutos</option>
+            <option value="900">Últimos 15 Minutos</option>
+            <option value="3600">Última 1 Hora</option>
+            <option value="18000">Últimas 5 Horas</option>
+        </select>
+    </div>
     <section class="charts-row">
         <div class="chart-box">
             <div class="chart-title">

@@ -3,7 +3,8 @@
    ════════════════════════════════════════════════════════ */
 
 let MAX_ROWS = 500;
-let MAX_POINTS = 300; // 5 minutos de histórico
+
+let currentStatsData = null;
 
 let allPackets = [];
 let isRunning = false;
@@ -176,13 +177,35 @@ function updateUI(data) {
     updateRank("top-c2s", data.top_c2s);
     updateRank("top-s2c", data.top_s2c);
     
-    chartPPS.data.datasets[0].data = data.c2s_pps.slice(-MAX_POINTS);
-    chartPPS.data.datasets[1].data = data.s2c_pps.slice(-MAX_POINTS);
+    currentStatsData = data;
+    renderCharts();
+}
+
+function renderCharts() {
+    if (!currentStatsData || !chartPPS || !chartBPS) return;
+    
+    const timeFilter = document.getElementById("chart-time-filter");
+    const maxPoints = timeFilter ? parseInt(timeFilter.value) : 300;
+
+    const data = currentStatsData;
+    
+    const labels = data.stats_times ? data.stats_times.slice(-maxPoints) : Array(maxPoints).fill("");
+    
+    chartPPS.data.labels = labels;
+    chartPPS.data.datasets[0].data = data.c2s_pps.slice(-maxPoints);
+    chartPPS.data.datasets[1].data = data.s2c_pps.slice(-maxPoints);
     chartPPS.update();
 
-    chartBPS.data.datasets[0].data = data.c2s_bps.slice(-MAX_POINTS);
-    chartBPS.data.datasets[1].data = data.s2c_bps.slice(-MAX_POINTS);
+    chartBPS.data.labels = labels;
+    chartBPS.data.datasets[0].data = data.c2s_bps.slice(-maxPoints);
+    chartBPS.data.datasets[1].data = data.s2c_bps.slice(-maxPoints);
     chartBPS.update();
+}
+
+function forceChartUpdate() {
+    if (chartPPS) chartPPS.resetZoom();
+    if (chartBPS) chartBPS.resetZoom();
+    renderCharts();
 }
 
 function appendRow(ev) {
@@ -289,7 +312,11 @@ function initCharts() {
         maintainAspectRatio: false,
         animation: false,
         scales: {
-            x: { display: false },
+            x: { 
+                display: true, 
+                grid: { color: "rgba(255,255,255,0.05)" },
+                ticks: { color: "#5a6480", font: { size: 9 }, maxTicksLimit: 10 }
+            },
             y: { 
                 beginAtZero: true, 
                 grid: { color: "rgba(255,255,255,0.05)" },
@@ -319,7 +346,7 @@ function initCharts() {
     chartPPS = new Chart(document.getElementById("chart-pps"), {
         type: "line",
         data: {
-            labels: Array(MAX_POINTS).fill(""),
+            labels: [],
             datasets: [
                 { label: "C2S", data: [], borderColor: "#3b82f6", backgroundColor: "rgba(59, 130, 246, 0.1)", fill: true },
                 { label: "S2C", data: [], borderColor: "#10b981", backgroundColor: "rgba(16, 185, 129, 0.1)", fill: true }
@@ -331,7 +358,7 @@ function initCharts() {
     chartBPS = new Chart(document.getElementById("chart-bps"), {
         type: "line",
         data: {
-            labels: Array(MAX_POINTS).fill(""),
+            labels: [],
             datasets: [
                 { label: "C2S", data: [], borderColor: "#3b82f6", backgroundColor: "rgba(59, 130, 246, 0.1)", fill: true },
                 { label: "S2C", data: [], borderColor: "#10b981", backgroundColor: "rgba(16, 185, 129, 0.1)", fill: true }

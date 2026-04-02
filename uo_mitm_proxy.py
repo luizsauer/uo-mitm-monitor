@@ -31,9 +31,9 @@ stats = {
     "c2s_bytes": 0, "s2c_bytes": 0, "c2s_pkts": 0, "s2c_pkts": 0,
     "c2s_ids": Counter(), "s2c_ids": Counter(), "connections": 0,
     "start_time": time.time(),
-    "stats_times": deque(maxlen=300),
-    "c2s_bps": deque(maxlen=300), "s2c_bps": deque(maxlen=300),
-    "c2s_pps": deque(maxlen=300), "s2c_pps": deque(maxlen=300),
+    "stats_times": deque(maxlen=18000),
+    "c2s_bps": deque(maxlen=18000), "s2c_bps": deque(maxlen=18000),
+    "c2s_pps": deque(maxlen=18000), "s2c_pps": deque(maxlen=18000),
     "_c2s_bytes_since": 0, "_s2c_bytes_since": 0,
     "_c2s_pkts_since":  0, "_s2c_pkts_since":  0,
 }
@@ -211,3 +211,6 @@ def reset_stats():
         for k in ["c2s_bytes", "s2c_bytes", "c2s_pkts", "s2c_pkts", "_c2s_bytes_since", "_s2c_bytes_since", "_c2s_pkts_since", "_s2c_pkts_since"]:
             stats[k] = 0
         stats["c2s_ids"].clear(); stats["s2c_ids"].clear(); stats["start_time"] = time.time()
+        stats["stats_times"].clear()
+        stats["c2s_bps"].clear(); stats["s2c_bps"].clear()
+        stats["c2s_pps"].clear(); stats["s2c_pps"].clear()

@@ -64,6 +64,8 @@ def stats_broadcaster():
         time.sleep(1)
         with proxy.stats_lock:
             s = proxy.stats
+            now_ts = time.strftime("%H:%M:%S")
+            s["stats_times"].append(now_ts)
             s["c2s_bps"].append(s["_c2s_bytes_since"])
             s["s2c_bps"].append(s["_s2c_bytes_since"])
             s["c2s_pps"].append(s["_c2s_pkts_since"])
@@ -73,6 +75,7 @@ def stats_broadcaster():
                 "c2s_bytes": s["c2s_bytes"], "s2c_bytes": s["s2c_bytes"],
                 "c2s_pkts": s["c2s_pkts"], "s2c_pkts": s["s2c_pkts"],
                 "connections": s["connections"],
+                "stats_times": list(s["stats_times"]),
                 "c2s_bps": list(s["c2s_bps"]), "s2c_bps": list(s["s2c_bps"]),
                 "c2s_pps": list(s["c2s_pps"]), "s2c_pps": list(s["s2c_pps"]),
                 "top_c2s": [(f"0x{k:02X}", proxy.PACKET_NAMES.get(k, "Unknown"), v) for k, v in s["c2s_ids"].most_common(15)],
