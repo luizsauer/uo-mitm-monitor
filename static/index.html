@@ -113,6 +113,7 @@
                         <option value="C2S">C2S</option>
                         <option value="S2C">S2C</option>
                     </select>
+                    <input id="f-cid" type="text" placeholder="CID" maxlength="5" oninput="applyFilters()">
                     <input id="f-opcode" type="text" placeholder="Opcode" maxlength="4" oninput="applyFilters()">
                     <input id="f-name" type="text" placeholder="Nome" oninput="applyFilters()">
                     <button class="btn btn-sm" onclick="clearFilters()">✕</button>
@@ -122,7 +123,7 @@
             <div class="table-wrap">
                 <table id="packet-table">
                     <thead>
-                        <tr><th>#</th><th>Tempo</th><th>Dir</th><th>Opcode</th><th>Nome</th><th>Len</th><th>Hex Preview</th></tr>
+                        <tr><th>#</th><th>CID</th><th>Tempo</th><th>Dir</th><th>Opcode</th><th>Nome</th><th>Len</th><th>Hex Preview</th></tr>
                     </thead>
                     <tbody id="packet-tbody"></tbody>
                 </table>

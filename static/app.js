@@ -8,6 +8,7 @@ let MAX_POINTS = 300; // 5 minutos de histórico
 let allPackets = [];
 let isRunning = false;
 let filterDir = "";
+let filterCid = "";
 let filterOpcode = "";
 let filterName = "";
 
@@ -190,7 +191,8 @@ function appendRow(ev) {
     const dirClass = ev.dir === "C2S" ? "dir-c2s" : "dir-s2c";
     
     tr.innerHTML = `
-        <td style="color:var(--text-muted)">${ev.opcode}</td>
+        <td style="color:var(--text-muted)">${tbody.rows.length + 1}</td>
+        <td style="color:var(--purple); font-weight:700">${ev.conn_id}</td>
         <td class="time">${ev.ts_str}</td>
         <td class="${dirClass}">${ev.dir}</td>
         <td class="opcode">${ev.opcode_hex}</td>
@@ -206,6 +208,7 @@ function appendRow(ev) {
 
 function matchesFilter(ev) {
     if (filterDir && ev.dir !== filterDir) return false;
+    if (filterCid && !String(ev.conn_id).includes(filterCid)) return false;
     if (filterOpcode && !ev.opcode_hex.toLowerCase().includes(filterOpcode.toLowerCase())) return false;
     if (filterName && !ev.name.toLowerCase().includes(filterName.toLowerCase())) return false;
     return true;
@@ -213,6 +216,7 @@ function matchesFilter(ev) {
 
 function applyFilters() {
     filterDir = document.getElementById("f-dir").value;
+    filterCid = document.getElementById("f-cid").value;
     filterOpcode = document.getElementById("f-opcode").value;
     filterName = document.getElementById("f-name").value;
     const tbody = document.getElementById("packet-tbody");
@@ -222,6 +226,7 @@ function applyFilters() {
 
 function clearFilters() {
     document.getElementById("f-dir").value = "";
+    document.getElementById("f-cid").value = "";
     document.getElementById("f-opcode").value = "";
     document.getElementById("f-name").value = "";
     applyFilters();
