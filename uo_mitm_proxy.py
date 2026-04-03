@@ -99,9 +99,12 @@ def log_worker():
         except queue.Empty: continue
         except: continue
 
-def forward(source, target, direction, cid, listen_port):
+def forward(source, target, direction, cid, listen_port, inject_ip):
     """Ponte de Rede Ultra-Rápida. Apenas entrega pacotes."""
-    proxy_ip = b'\x7f\x00\x00\x01'
+    try:
+        proxy_ip = socket.inet_aton(inject_ip)
+    except:
+        proxy_ip = b'\x7f\x00\x00\x01' # Fallback preventivo
     proxy_port = int(listen_port).to_bytes(2, 'big')
     bytes_transferred = 0
 
@@ -149,11 +152,12 @@ def forward(source, target, direction, cid, listen_port):
     except: pass
 
 class UOProxy:
-    def __init__(self, target_host, target_port, listen_port, listen_host='0.0.0.0'):
+    def __init__(self, target_host, target_port, listen_port, listen_host='0.0.0.0', inject_ip='127.0.0.1'):
         self.target_host = target_host
         self.target_port = int(target_port)
         self.listen_port = int(listen_port)
         self.listen_host = listen_host
+        self.inject_ip = inject_ip
         self.running = False
         self.server_sock = None
 
@@ -198,8 +202,8 @@ class UOProxy:
         cid = int(time.time() * 1000) % 10000
         _push({"type":"conn", "msg":f"Conectado: {addr}", "status":"connected", "ts_str":time.strftime("%H:%M:%S")})
 
-        t1 = threading.Thread(target=forward, args=(client_sock, remote_sock, "C2S", cid, self.listen_port), daemon=True)
-        t2 = threading.Thread(target=forward, args=(remote_sock, client_sock, "S2C", cid, self.listen_port), daemon=True)
+        t1 = threading.Thread(target=forward, args=(client_sock, remote_sock, "C2S", cid, self.listen_port, self.inject_ip), daemon=True)
+        t2 = threading.Thread(target=forward, args=(remote_sock, client_sock, "S2C", cid, self.listen_port, self.inject_ip), daemon=True)
         t1.start(); t2.start()
         t1.join(); t2.join()
 

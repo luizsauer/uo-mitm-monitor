@@ -2,9 +2,16 @@
     UO MITM Monitor — app.js
    ════════════════════════════════════════════════════════ */
 
+// Registrar Plugins (Chart.js 4+)
+try {
+    Chart.register(ChartZoom);
+} catch(e) { console.warn("Erro ao registrar ChartZoom:", e); }
+
 let MAX_ROWS = 500;
 
-let currentStatsData = null;
+let currentStatsData = {
+    stats_times: [], c2s_bps: [], s2c_bps: [], c2s_pps: [], s2c_pps: []
+};
 
 let allPackets = [];
 let isRunning = false;
@@ -18,7 +25,28 @@ let chartPPS, chartBPS;
 document.addEventListener("DOMContentLoaded", () => {
     initCharts();
     loadStatus();
+    loadHistory();
     setInterval(loadStatus, 3000);
+});
+
+async function loadHistory() {
+    try {
+        const res = await fetch("/api/history");
+        const hist = await res.json();
+        currentStatsData.stats_times = hist.stats_times || [];
+        currentStatsData.c2s_bps = hist.c2s_bps || [];
+        currentStatsData.s2c_bps = hist.s2c_bps || [];
+        currentStatsData.c2s_pps = hist.c2s_pps || [];
+        currentStatsData.s2c_pps = hist.s2c_pps || [];
+        if (!document.hidden) forceChartUpdate();
+    } catch(e) {}
+}
+
+document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+        applyFilters(); 
+        forceChartUpdate();
+    }
 });
 
 const socket = io();
@@ -27,16 +55,41 @@ socket.on("event", ev => {
     if (ev.type === "packet") {
         allPackets.push(ev);
         if (allPackets.length > 2000) allPackets.shift();
-        if (matchesFilter(ev)) {
+        if (!document.hidden && matchesFilter(ev)) {
             appendRow(ev);
         }
     } else if (ev.type === "conn") {
-        addConnLog(ev.msg, ev.status);
+        if (!document.hidden) addConnLog(ev.msg, ev.status);
     }
 });
 
 socket.on("stats", data => {
-    updateUI(data);
+    const MAX_HIST = 18000;
+    
+    if (data.curr_time) {
+        currentStatsData.stats_times.push(data.curr_time);
+        currentStatsData.c2s_bps.push(data.curr_c2s_bps || 0);
+        currentStatsData.s2c_bps.push(data.curr_s2c_bps || 0);
+        currentStatsData.c2s_pps.push(data.curr_c2s_pps || 0);
+        currentStatsData.s2c_pps.push(data.curr_s2c_pps || 0);
+        
+        if (currentStatsData.stats_times.length > MAX_HIST) {
+            currentStatsData.stats_times.shift();
+            currentStatsData.c2s_bps.shift();
+            currentStatsData.s2c_bps.shift();
+            currentStatsData.c2s_pps.shift();
+            currentStatsData.s2c_pps.shift();
+        }
+    }
+
+    currentStatsData.c2s_bytes = data.c2s_bytes;
+    currentStatsData.s2c_bytes = data.s2c_bytes;
+    currentStatsData.c2s_pkts = data.c2s_pkts;
+    currentStatsData.s2c_pkts = data.s2c_pkts;
+    currentStatsData.top_c2s = data.top_c2s || [];
+    currentStatsData.top_s2c = data.top_s2c || [];
+
+    if (!document.hidden) updateUI(currentStatsData);
 });
 
 let initialLoadDone = false;
@@ -47,7 +100,7 @@ async function loadStatus() {
         const data = await res.json();
         
         // Preenche campos apenas no primeiro carregamento ou se o usuário não alterou manualmente
-        const inputs = ["target-ip", "target-port", "listen-port", "relay-ip"];
+        const inputs = ["target-ip", "target-port", "listen-port", "relay-ip", "inject-ip"];
         inputs.forEach(id => {
             const el = document.getElementById(id);
             const val = data.config[id.replace("-", "_")];
@@ -114,7 +167,8 @@ async function toggleProxy() {
         target_ip: document.getElementById("target-ip").value,
         target_port: parseInt(document.getElementById("target-port").value),
         listen_port: parseInt(document.getElementById("listen-port").value),
-        relay_ip: document.getElementById("relay-ip").value
+        relay_ip: document.getElementById("relay-ip").value,
+        inject_ip: document.getElementById("inject-ip").value || "127.0.0.1"
     };
 
     try {
@@ -177,7 +231,6 @@ function updateUI(data) {
     updateRank("top-c2s", data.top_c2s);
     updateRank("top-s2c", data.top_s2c);
     
-    currentStatsData = data;
     renderCharts();
 }
 
@@ -203,9 +256,19 @@ function renderCharts() {
 }
 
 function forceChartUpdate() {
-    if (chartPPS) chartPPS.resetZoom();
-    if (chartBPS) chartBPS.resetZoom();
+    if (chartPPS && typeof chartPPS.resetZoom === 'function') chartPPS.resetZoom();
+    if (chartBPS && typeof chartBPS.resetZoom === 'function') chartBPS.resetZoom();
     renderCharts();
+}
+
+function toggleChartSize(boxId) {
+    const box = document.getElementById(boxId);
+    box.classList.toggle('maximized');
+    // Redesenhar após a transição para evitar borrões
+    setTimeout(() => {
+        if (chartPPS) chartPPS.resize();
+        if (chartBPS) chartBPS.resize();
+    }, 350);
 }
 
 function appendRow(ev) {
@@ -372,7 +435,12 @@ async function clearHistory() {
     if (confirm("Limpar?")) {
         await fetch("/api/reset", {method: "POST"});
         allPackets = [];
+        currentStatsData.stats_times = [];
+        currentStatsData.c2s_bps = []; currentStatsData.s2c_bps = [];
+        currentStatsData.c2s_pps = []; currentStatsData.s2c_pps = [];
+        
         document.getElementById("packet-tbody").innerHTML = "";
+        forceChartUpdate();
     }
 }
 

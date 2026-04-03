@@ -250,14 +250,15 @@ html, body {
 /* ─── Charts ────────────────────────────────────────────── */
 .charts-row {
   display: flex;
+  flex-wrap: wrap; /* Permite empilhar em telas pequenas */
   gap: 12px;
   padding: 8px 24px;
-  height: 280px; 
-  min-height: 280px;
-  overflow: hidden;
+  min-height: 0; /* Remove travas de altura mínima na linha */
+  height: auto;
+  align-items: flex-start; /* Impede que um gráfico force a altura de outro */
 }
 .chart-box {
-  flex: 1;
+  flex: 1 1 480px; /* Base mínima larga mas flexível */
   background: var(--bg-panel);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -265,8 +266,21 @@ html, body {
   position: relative;
   display: flex;
   flex-direction: column;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 340px; /* Altura fixa padrão impede loops */
+  max-height: 340px;
+  overflow: hidden;
 }
-.chart-box canvas {
+.chart-box.maximized {
+  flex: 1 1 100% !important;
+  height: 520px; /* Altura fixa maximizada impede loops */
+  max-height: 520px;
+}
+@media (max-width: 900px) {
+  .charts-row { padding: 8px 12px; }
+  .chart-box { flex: 1 1 100%; height: 300px; max-height: 300px; }
+}
+.chart-box video, .chart-box canvas {
   flex: 1;
   min-height: 0; /* Garante que o canvas não force o container a crescer */
 }

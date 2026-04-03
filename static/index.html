@@ -35,7 +35,11 @@
             </div>
             <div class="config-group">
                 <label>Bind IP:</label>
-                <input id="relay-ip" type="text" style="width:120px" placeholder="0.0.0.0">
+                <input id="relay-ip" type="text" style="width:100px" placeholder="0.0.0.0">
+            </div>
+            <div class="config-group" style="border-left: 1px solid rgba(255,255,255,0.1); padding-left: 10px; margin-left: 5px;">
+                <label style="color: var(--yellow);">Injetar IP (Cliente):</label>
+                <input id="inject-ip" type="text" style="width:115px" placeholder="127.0.0.1" title="Para qual IP o cliente deve apontar no Proxy">
             </div>
         </div>
 
@@ -96,17 +100,23 @@
         </select>
     </div>
     <section class="charts-row">
-        <div class="chart-box">
+        <div class="chart-box" id="pps-box">
             <div class="chart-title">
-                📈 Packets/s 
-                <button class="btn-sm" style="padding:2px 6px; font-size:9px; float:right" onclick="chartPPS.resetZoom()">Reset</button>
+                <span>📈 Packets/s</span>
+                <div style="display:flex; gap: 5px;">
+                    <button class="btn-sm" onclick="toggleChartSize('pps-box')" title="Alternar Tamanho">📐</button>
+                    <button class="btn-sm" onclick="chartPPS.resetZoom()" title="Reset Zoom">🔄</button>
+                </div>
             </div>
             <canvas id="chart-pps"></canvas>
         </div>
-        <div class="chart-box">
+        <div class="chart-box" id="bps-box">
             <div class="chart-title">
-                📊 Bytes/s
-                <button class="btn-sm" style="padding:2px 6px; font-size:9px; float:right" onclick="chartBPS.resetZoom()">Reset</button>
+                <span>📊 Bytes/s</span>
+                <div style="display:flex; gap: 5px;">
+                    <button class="btn-sm" onclick="toggleChartSize('bps-box')" title="Alternar Tamanho">📐</button>
+                    <button class="btn-sm" onclick="chartBPS.resetZoom()" title="Reset Zoom">🔄</button>
+                </div>
             </div>
             <canvas id="chart-bps"></canvas>
         </div>

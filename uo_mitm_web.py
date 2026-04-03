@@ -43,6 +43,7 @@ def load_config():
         "target_port": 2593,
         "listen_port": 2593,
         "relay_ip": "0.0.0.0",
+        "inject_ip": "127.0.0.1",
         "auto_start": False
     }
 
@@ -75,9 +76,13 @@ def stats_broadcaster():
                 "c2s_bytes": s["c2s_bytes"], "s2c_bytes": s["s2c_bytes"],
                 "c2s_pkts": s["c2s_pkts"], "s2c_pkts": s["s2c_pkts"],
                 "connections": s["connections"],
-                "stats_times": list(s["stats_times"]),
-                "c2s_bps": list(s["c2s_bps"]), "s2c_bps": list(s["s2c_bps"]),
-                "c2s_pps": list(s["c2s_pps"]), "s2c_pps": list(s["s2c_pps"]),
+                
+                "curr_time": now_ts,
+                "curr_c2s_bps": s["_c2s_bytes_since"],
+                "curr_s2c_bps": s["_s2c_bytes_since"],
+                "curr_c2s_pps": s["_c2s_pkts_since"],
+                "curr_s2c_pps": s["_s2c_pkts_since"],
+
                 "top_c2s": [(f"0x{k:02X}", proxy.PACKET_NAMES.get(k, "Unknown"), v) for k, v in s["c2s_ids"].most_common(15)],
                 "top_s2c": [(f"0x{k:02X}", proxy.PACKET_NAMES.get(k, "Unknown"), v) for k, v in s["s2c_ids"].most_common(15)],
                 "uptime": int(time.time() - s["start_time"]),
@@ -91,6 +96,16 @@ def stats_broadcaster():
 @app.route("/")
 def index():
     return send_from_directory("static", "index.html")
+
+@app.route("/api/history")
+def api_history():
+    with proxy.stats_lock:
+        s = proxy.stats
+        return jsonify({
+            "stats_times": list(s["stats_times"]),
+            "c2s_bps": list(s["c2s_bps"]), "s2c_bps": list(s["s2c_bps"]),
+            "c2s_pps": list(s["c2s_pps"]), "s2c_pps": list(s["s2c_pps"])
+        })
 
 @app.route("/api/status")
 def api_status():
@@ -124,7 +139,13 @@ def api_proxy_start():
     with open(CONFIG_FILE, "w") as f:
         json.dump(config, f, indent=4)
     
-    proxy_instance = proxy.UOProxy(config["target_ip"], config["target_port"], config["listen_port"], config["relay_ip"])
+    proxy_instance = proxy.UOProxy(
+        config["target_ip"], 
+        config["target_port"], 
+        config["listen_port"], 
+        config.get("relay_ip", "0.0.0.0"), 
+        config.get("inject_ip", "127.0.0.1")
+    )
     proxy_thread = threading.Thread(target=proxy_instance.start, daemon=True)
     proxy_thread.start()
     
