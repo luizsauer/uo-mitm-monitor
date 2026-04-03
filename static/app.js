@@ -2,6 +2,11 @@
     UO MITM Monitor — app.js
    ════════════════════════════════════════════════════════ */
 
+// Registrar Plugins (Chart.js 4+)
+try {
+    Chart.register(ChartZoom);
+} catch(e) { console.warn("Erro ao registrar ChartZoom:", e); }
+
 let MAX_ROWS = 500;
 
 let currentStatsData = null;
@@ -204,9 +209,19 @@ function renderCharts() {
 }
 
 function forceChartUpdate() {
-    if (chartPPS) chartPPS.resetZoom();
-    if (chartBPS) chartBPS.resetZoom();
+    if (chartPPS && typeof chartPPS.resetZoom === 'function') chartPPS.resetZoom();
+    if (chartBPS && typeof chartBPS.resetZoom === 'function') chartBPS.resetZoom();
     renderCharts();
+}
+
+function toggleChartSize(boxId) {
+    const box = document.getElementById(boxId);
+    box.classList.toggle('maximized');
+    // Redesenhar após a transição para evitar borrões
+    setTimeout(() => {
+        if (chartPPS) chartPPS.resize();
+        if (chartBPS) chartBPS.resize();
+    }, 350);
 }
 
 function appendRow(ev) {
